@@ -37,7 +37,7 @@ npx sails-js-cli generate ./src/vara_proxy.idl -o src/ --no-project
 
 Change the code in `src/` as you wish, keeping the fulfillment contract call. This example just submits a text to the _consumer_ smart contract, using the Acurast proxy contract as an intermediary. Details of this contracts (written in [gear](https://gear-tech.io/)):
 
-- **Consumer contract** [[source](https://github.com/Acurast/acurast-substrate/tree/develop/hyperdrive/vara/vara-consumer) | [idl](./src/vara_consumer.idl)]: receiving and storing text as payload.
+- **Consumer contract** [source](https://github.com/gear-foundation/dapps/tree/master/contracts/ping)
 - **Acurast Proxy contract** [[source](https://github.com/Acurast/acurast-substrate/tree/develop/hyperdrive/vara/vara-proxy) | [idl](./src/vara_proxy.idl)]: receiving the submission over the `fulfill` message (and handling the rest of L2-integration protocol).
 
 
