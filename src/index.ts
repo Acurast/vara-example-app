@@ -42,16 +42,59 @@ async function fulfill(jobId: string, payload: `0x${string}`): Promise<void> {
 
   logger?.info(`Fulfillment with address: ${address}, accountID: ${account}`);
 
-  const { blockHash, response } = await (
-    await program.varaProxy
-      .fulfill(jobId, payload)
-      .withAccount(account, { signer: new NativeSigner() })
-      .calculateGas()
-  ).signAndSend();
-  logger?.info(`Fulfillment tx hash: ${blockHash}`);
+  try {
+    logger?.info(
+      `Fulfillment (using account) with address: ${address}, accountID: ${account}`
+    );
+    const { blockHash, response } = await (
+      await program.varaProxy
+        .fulfill(jobId, payload)
+        .withAccount(account, { signer: new NativeSigner() })
+        .calculateGas()
+    ).signAndSend();
+    logger?.info(`Fulfillment tx hash: ${blockHash}`);
 
-  const result = await response();
-  logger?.info(`Fulfillment Result: ${result}`);
+    const result = await response();
+    logger?.info(`Fulfillment Result: ${result}`);
+  } catch (e) {
+    logger?.error(e);
+
+    try {
+      logger?.info(
+        `Fulfillment (using address) with address: ${address}, accountID: ${account}`
+      );
+
+      const { blockHash, response } = await (
+        await program.varaProxy
+          .fulfill(jobId, payload)
+          .withAccount(address, { signer: new NativeSigner() })
+          .calculateGas()
+      ).signAndSend();
+      logger?.info(`Fulfillment tx hash: ${blockHash}`);
+
+      const result = await response();
+      logger?.info(`Fulfillment Result: ${result}`);
+    } catch (e) {
+      logger?.error(e);
+
+      logger?.info(
+        `Fulfillment (using address 42) with address: ${address}, accountID: ${account}`
+      );
+
+      const { blockHash, response } = await (
+        await program.varaProxy
+          .fulfill(jobId, payload)
+          .withAccount(encodeAddress(hexToU8a(account)), {
+            signer: new NativeSigner(),
+          })
+          .calculateGas()
+      ).signAndSend();
+      logger?.info(`Fulfillment tx hash: ${blockHash}`);
+
+      const result = await response();
+      logger?.info(`Fulfillment Result: ${result}`);
+    }
+  }
 }
 
 type PublicKeys = {
