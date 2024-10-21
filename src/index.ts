@@ -11,11 +11,12 @@ declare const _STD_: any;
 initLogger();
 
 const varaApi = GearApi.create({
-  providerAddress: "wss://testnet.vara.network",
+  providerAddress: "wss://testnet.vara.network", // devnet
+  //   providerAddress: "wss://rpc.vara.network", // canary
 });
 
 async function main() {
-  const text = "PING";
+  const text = new Date().toISOString();
   logger?.info(`Fulfillment with text as payload: ${text}`);
   await fulfill(
     jobId,
@@ -30,11 +31,13 @@ async function fulfill(jobId: string, payload: `0x${string}`): Promise<void> {
   // Acurast Proxy Contract
   const program = new Program(
     await varaApi,
-    "0x008c7b8e8af22f221bf9872c47a749aac51dc3c374b1ce384f4a43f6a2883afb"
+    "0x008c7b8e8af22f221bf9872c47a749aac51dc3c374b1ce384f4a43f6a2883afb" // devnet
+    // "0x8d589e54da57f66fee61d3bc618ffa25d661d1306f4465da47591a907c7d616b" // canary
   );
 
   // Acurast Consumer Contract
-  // consumer = 0xae8e868b4685bab8bd2726339d90d6b6a29ae75cacdf1cf1a312e9f6512d625a
+  // devnet: 0x6586cb5caed4c0ee4f64c18be8c0b21f1489bc342289c7153b5ffdf22f7085ae
+  // canary: 0x67e0c42d9bc6dca3788b0b7d923b57aa9389464d069c753021b8a80149e47024
 
   const keys: PublicKeys = _STD_.job.getPublicKeys();
   const account = blake2AsHex(hexToU8a(keys.secp256k1), 256);
@@ -42,12 +45,15 @@ async function fulfill(jobId: string, payload: `0x${string}`): Promise<void> {
 
   logger?.info(`Fulfillment with address: ${address}, accountID: ${account}`);
 
-  const { blockHash, response } = await (
-    await program.varaProxy
-      .fulfill(jobId, payload)
-      .withAccount(account, { signer: new NativeSigner() })
-      .calculateGas()
-  ).signAndSend();
+  const { blockHash, response } = await program.varaProxy
+    .fulfill(jobId, payload)
+    .withAccount(address, { signer: new NativeSigner() })
+    .withGas(BigInt(100000000000))
+    .signAndSend()
+    .catch((e) => {
+      logger?.error(e);
+      throw e;
+    });
   logger?.info(`Fulfillment tx hash: ${blockHash}`);
 
   const result = await response();

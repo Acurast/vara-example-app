@@ -1,4 +1,4 @@
-<h2 align="center">Acurast Deployment for Vara L2-integration</h2>
+<h2 align="center">Vara Example app using Acurast integration</h2>
 
 <p align="center">
   <em>
@@ -13,8 +13,46 @@
 
 This repository contains an example deployment that runs on the _Acurast Decentralized Serverless Cloud_ and submits to a smart contract deployed to [Vara](https://vara.network/), written in [gear](https://gear-tech.io/).
 
+  
 To learn more about Acurast please visit the [website](https://acurast.com/) and [documentation](https://docs.acurast.com/).
 To learn more about Vara please visit the [website](https://vara.network/).
+
+## How it works
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor C as Developer
+    participant F as Vara with<br>Acurast proxy contract<br>and consumer contract
+    participant A as Acurast<br>Parachain
+    participant P as Processor
+    
+    C->>+F: register job
+    note over F: Verifies if enough fees were provided<br>to complete all job executions<br>and pre-pay gas to assigned processors.
+    F->>+A: Hyperdrive[REGISTER_JOB]
+    deactivate F
+    note over A: Locks the cACU tokens necessary to pay the job rewards.
+    A->>A: external matcher finds best processors
+    deactivate A
+
+    P ->>+A: acknowledge_match
+    A ->>+F: Hyperdrive[ASSIGN_JOB_PROCESSOR]
+    note over F: Stores assigned processors.
+    deactivate A
+    F-->>P: 💰 prepay gas for first execution
+    deactivate F
+    
+    P->>+F: fulfill
+    F->>F: forward fulfillment payload to consumer contract
+    F-->>P: 💰 prepay gas for next execution
+    deactivate F
+
+    P->>+A: report executions
+    P->>A: finalize job
+    A ->> +F: Hyperdrive[FINALIZE_JOB]
+    F -->> C: 💰 pay back unused funds
+    deactivate A
+```
 
 ## Installation
 
@@ -38,7 +76,7 @@ npx sails-js-cli generate ./src/vara_proxy.idl -o src/ --no-project
 Change the code in `src/` as you wish, keeping the fulfillment contract call. This example just submits a text to the _consumer_ smart contract, using the Acurast proxy contract as an intermediary. Details of this contracts (written in [gear](https://gear-tech.io/)):
 
 - **Consumer contract** [source](https://github.com/gear-foundation/dapps/tree/master/contracts/ping)
-- **Acurast Proxy contract** [[source](https://github.com/Acurast/acurast-substrate/tree/develop/hyperdrive/vara/vara-proxy) | [idl](./src/vara_proxy.idl)]: receiving the submission over the `fulfill` message (and handling the rest of L2-integration protocol).
+- **Acurast Proxy contract** [[source](https://github.com/Acurast/acurast-substrate/tree/develop/hyperdrive/vara/vara-proxy) | [idl](./src/vara_proxy.idl)]: receiving the submission over the `fulfill` message (and handling the rest of the acurast integration protocol).
 
 
 
@@ -59,3 +97,8 @@ acurast deploy
 ```
 
 It will eventually print the ipfs URL you can enter directly in the [Acurast Console](https://console.acurast.com/).
+
+Some versions of this example app have already been uploaded under these URLS:
+
+- For Acurast Devnet <-> Vara Testnet: [ipfs://QmbLjJumLdmEHtz6ZYQEqnEtW6mkKwDyfDofLVzjH5bG8Y](https://ipfs.io/ipfs/QmbLjJumLdmEHtz6ZYQEqnEtW6mkKwDyfDofLVzjH5bG8Y)
+- For Acurast Canary <-> Vara Mainnet: [ipfs://QmbgLPJzwsNHdgyzjhPNCUR8XTgE9RaBmhS8FC6ArPH5rS](https://ipfs.io/ipfs/QmbgLPJzwsNHdgyzjhPNCUR8XTgE9RaBmhS8FC6ArPH5rS)

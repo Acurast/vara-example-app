@@ -32,7 +32,7 @@ export const initLogger = () => {
           ),
         }),
       ],
-      defaultMeta: { jobId: `Vara#{jobId}` },
+      defaultMeta: { jobId: `Vara#${jobId}` },
     });
     return;
   } catch (e) {
