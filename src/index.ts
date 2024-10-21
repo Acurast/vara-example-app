@@ -37,10 +37,10 @@ async function fulfill(jobId: string, payload: `0x${string}`): Promise<void> {
   // consumer = 0xae8e868b4685bab8bd2726339d90d6b6a29ae75cacdf1cf1a312e9f6512d625a
 
   const keys: PublicKeys = _STD_.job.getPublicKeys();
-  const account = blake2AsHex(hexToU8a(keys.secp256k1), 256).replace(/^0x/, "");;
+  const account = blake2AsHex(hexToU8a(keys.secp256k1), 256);
   const address = encodeAddress(hexToU8a(account), 137);
 
-  logger?.info(`Fulfillment with address: ${address}, accountID: 0x${account}`);
+  logger?.info(`Fulfillment with address: ${address}, accountID: ${account}`);
 
   const { blockHash, response } = await (
     await program.varaProxy
